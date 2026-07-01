@@ -1,0 +1,111 @@
+#!/bin/bash
+
+help() {
+    cat <<EOF
+Usage: ./build [OPTIONS]
+
+Builds the project using CMake with various options such as Debug/Release modes,
+installation, and execution.
+
+Available Options:
+
+  --run [args]        Build (if needed) and run the compiled executable.
+                      Any arguments after this will be passed to the program.
+                      Example: ./build --run --flag1 value
+
+  --install           Build (if needed) and run 'cmake --install'.
+  --prefix DIR        Specify installation prefix (default: /usr/local).
+                      Must be used together with --install.
+
+  --release           Perform a Release build (default is Debug).
+  --debug             Perform a Debug build.
+
+  --clean             Remove the entire build directory before building.
+                      Example: ./build --clean --debug
+
+  --help, -h          Show this help message and exit.
+
+Examples:
+  ./build --debug
+  ./build --release --install --prefix /opt/myapp
+  ./build --run arg1 arg2
+
+EOF
+}
+
+build_type="Debug"
+run=0
+install=0
+clean=0
+prefix="/usr/local"
+run_args=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --run)
+        run=1
+        shift
+        run_args=("$@")
+        break
+        ;;
+    --install)
+        install=1
+        ;;
+    --prefix)
+        prefix="$2"
+        shift
+        ;;
+    --release)
+        build_type="Release"
+        ;;
+    --debug)
+        build_type="Debug"
+        ;;
+    --clean)
+        clean=1
+        ;;
+    --help | -h)
+        help
+        exit 0
+        ;;
+    *)
+        echo "Unknown option $1"
+        help
+        exit 1
+        ;;
+    esac
+    shift
+done
+
+root_dir=$(pwd)
+build_dir="out/$build_type"
+exe_name=$(sed -nE 's/^[[:space:]]*project\(([A-Za-z0-9_.+-]+)([[:space:]].*)?\).*/\1/p' CMakeLists.txt | head -n1)
+if [[ -z "$exe_name" ]]; then
+    exe_name=$(basename "$root_dir")
+fi
+generator="Unix Makefiles"
+
+if ((clean)); then
+    rm -rf "$build_dir" && echo "✓ Cleaned $build_dir"
+fi
+
+if [[ ! -f "$build_dir/CMakeCache.txt" ]]; then
+    cmake -B "$build_dir" -G "$generator" \
+        -DCMAKE_BUILD_TYPE="$build_type" \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+fi
+cmake --build "$build_dir"
+
+if ((install)); then
+    cmake --install "$build_dir" --prefix "$prefix"
+fi
+
+if ((run)); then
+    exe_path="$build_dir/$exe_name"
+    [[ -x "$exe_path" ]] || exe_path=$(find "$build_dir" -maxdepth 2 -type f -perm -111 -name "$exe_name" | head -n1)
+    if [[ -z "$exe_path" ]]; then
+        echo "Cannot find executable '$exe_name' in $build_dir"
+        exit 1
+    fi
+    exec "$exe_path" "${run_args[@]}"
+fi
