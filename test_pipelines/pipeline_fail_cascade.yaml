@@ -1,0 +1,18 @@
+workers: 3
+
+jobs:
+  - name: build
+    command: "echo 'building project...' && sleep 1 && echo 'build done'"
+    depends_on: []
+
+  - name: lint
+    command: "echo 'running linter...' && sleep 1 && echo 'linter failed' && false"
+    depends_on: [build]
+
+  - name: test
+    command: "echo 'running tests...' && sleep 1 && echo 'tests passed'"
+    depends_on: [build]
+
+  - name: package
+    command: "echo 'packaging...'"
+    depends_on: [test, lint]

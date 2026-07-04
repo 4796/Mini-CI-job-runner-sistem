@@ -1,0 +1,14 @@
+workers: 2
+
+jobs:
+  - name: A
+    command: "echo 'running A...'"
+    depends_on: [C]
+
+  - name: B
+    command: "echo 'running B...'"
+    depends_on: [A]
+
+  - name: C
+    command: "echo 'running C...'"
+    depends_on: [B]
