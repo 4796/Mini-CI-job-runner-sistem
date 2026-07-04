@@ -1,0 +1,12 @@
+import unittest
+from app import PORT
+
+class TestPythonApp(unittest.TestCase):
+    def test_port(self):
+        self.assertEqual(PORT, 8081)
+
+    def test_logic(self):
+        self.assertTrue(1 + 1 == 2)
+
+if __name__ == '__main__':
+    unittest.main()
