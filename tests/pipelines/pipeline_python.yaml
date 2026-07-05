@@ -1,0 +1,14 @@
+workers: 4
+
+jobs:
+  - name: build
+    command: "python3 -m py_compile tests/mock_apps/python/app.py"
+    depends_on: []
+
+  - name: test
+    command: "cd tests/mock_apps/python && python3 -m unittest test_app.py"
+    depends_on: [build]
+
+  - name: deploy
+    command: "docker rm -f mock-python-container || true && docker build -t mock-python-app ./tests/mock_apps/python && docker run -d --name mock-python-container -p 8081:8081 mock-python-app"
+    depends_on: [test]
