@@ -6,9 +6,10 @@ jobs:
     depends_on: []
 
   - name: test
-    command: "python3 -m unittest mock_python_app/test_app.py"
+    command: "cd mock_python_app && python3 -m unittest test_app.py"
     depends_on: [build]
 
   - name: deploy
     command: "docker rm -f mock-python-container || true && docker build -t mock-python-app ./mock_python_app && docker run -d --name mock-python-container -p 8081:8081 mock-python-app"
     depends_on: [test]
+
