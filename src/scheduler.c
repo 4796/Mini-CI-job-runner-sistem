@@ -24,6 +24,12 @@ void propagate(int finished_idx) {
             child->status = SKIPPED;
             jobs_remaining--;
             log_write_skipped(c);
+
+            pthread_mutex_lock(&console_lock);
+            printf("[MiniCI] Job '%s' SKIPPED\n", child->name);
+            fflush(stdout);
+            pthread_mutex_unlock(&console_lock);
+
             propagate(c); /* Recursively skip descendants */
         }
     }

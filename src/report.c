@@ -12,7 +12,13 @@ int generate_report(Job *jobs, int n_jobs) {
     int pending_count = 0;
     int running_count = 0;
 
+    FILE *f = fopen("logs/report.log", "w");
+
     printf("\n=== MiniCI Pipeline Report ===\n");
+    if (f != NULL) {
+        fprintf(f, "=== MiniCI Pipeline Report ===\n");
+    }
+
     for (int i = 0; i < n_jobs; i++) {
         const char *status_str = "UNKNOWN";
         switch (jobs[i].status) {
@@ -38,14 +44,29 @@ int generate_report(Job *jobs, int n_jobs) {
                 break;
         }
         printf("%-10s %s\n", jobs[i].name, status_str);
+        if (f != NULL) {
+            fprintf(f, "%-10s %s\n", jobs[i].name, status_str);
+        }
     }
 
     printf("\nTotal: %d | Success: %d | Failed: %d | Skipped: %d", 
            n_jobs, success_count, failed_count, skipped_count);
+    if (f != NULL) {
+        fprintf(f, "\nTotal: %d | Success: %d | Failed: %d | Skipped: %d", 
+                n_jobs, success_count, failed_count, skipped_count);
+    }
+
     if (pending_count > 0 || running_count > 0) {
         printf(" | Pending: %d | Running: %d", pending_count, running_count);
+        if (f != NULL) {
+            fprintf(f, " | Pending: %d | Running: %d", pending_count, running_count);
+        }
     }
     printf("\n");
+    if (f != NULL) {
+        fprintf(f, "\n");
+        fclose(f);
+    }
 
     return failed_count;
 }

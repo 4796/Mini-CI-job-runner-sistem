@@ -38,6 +38,7 @@ extern int      n_jobs;
 extern int      jobs_remaining;
 extern JobQueue ready_queue;
 extern JobQueue completed_queue;
+extern pthread_mutex_t console_lock;
 
 void free_jobs(Job *jobs, int n);
 

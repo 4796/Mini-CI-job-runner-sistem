@@ -21,6 +21,7 @@ int      n_jobs = 0;
 int      jobs_remaining = 0;
 JobQueue ready_queue;
 JobQueue completed_queue;
+pthread_mutex_t console_lock;
 
 int main(int argc, char **argv) {
     /* Start watchdog at the very beginning to avoid any deadlocks or hangs */
@@ -60,6 +61,7 @@ int main(int argc, char **argv) {
     /* 5. Initialize shared data structures */
     queue_init(&ready_queue);
     queue_init(&completed_queue);
+    pthread_mutex_init(&console_lock, NULL);
     jobs_remaining = n_jobs;
 
     /* 6. Seed ready queue: jobs without any dependencies go in immediately */
@@ -125,6 +127,7 @@ int main(int argc, char **argv) {
     /* 12. Cleanup resource usage */
     queue_destroy(&ready_queue);
     queue_destroy(&completed_queue);
+    pthread_mutex_destroy(&console_lock);
     free_jobs(jobs, n_jobs);
 
     return failed ? 1 : 0;

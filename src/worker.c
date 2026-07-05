@@ -16,6 +16,11 @@ void* worker_loop(void *arg) {
         Job *j = &jobs[job_index];
         j->status = RUNNING;
 
+        pthread_mutex_lock(&console_lock);
+        printf("[MiniCI] Job '%s' STARTED\n", j->name);
+        fflush(stdout);
+        pthread_mutex_unlock(&console_lock);
+
         /* Prepare command with stdout and stderr redirected to the log file.
          * Wrapping in ( %s ) ensures redirection applies to the entire command chain. */
         char full_cmd[512];
@@ -26,6 +31,11 @@ void* worker_loop(void *arg) {
         /* Decode exit status using standard POSIX macros */
         int success = (raw_status != -1) && WIFEXITED(raw_status) && (WEXITSTATUS(raw_status) == 0);
         j->status = success ? SUCCESS : FAILED;
+
+        pthread_mutex_lock(&console_lock);
+        printf("[MiniCI] Job '%s' FINISHED: %s\n", j->name, success ? "SUCCESS" : "FAILED");
+        fflush(stdout);
+        pthread_mutex_unlock(&console_lock);
 
         queue_push(&completed_queue, job_index);
     }
